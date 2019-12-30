@@ -35,6 +35,7 @@ import (
 	"github.com/jaegertracing/jaeger/cmd/agent/app/configmanager"
 	"github.com/jaegertracing/jaeger/cmd/agent/app/reporter"
 	"github.com/jaegertracing/jaeger/cmd/agent/app/reporter/grpc"
+	"github.com/jaegertracing/jaeger/cmd/agent/app/reporter/http"
 	"github.com/jaegertracing/jaeger/cmd/agent/app/reporter/tchannel"
 	"github.com/jaegertracing/jaeger/thrift-gen/baggage"
 	"github.com/jaegertracing/jaeger/thrift-gen/jaeger"
@@ -244,9 +245,10 @@ func TestCreateCollectorProxy(t *testing.T) {
 		rOpts := new(reporter.Options).InitFromViper(v, zap.NewNop())
 		tchan := tchannel.NewBuilder().InitFromViper(v, zap.NewNop())
 		grpcBuilder := grpc.NewConnBuilder().InitFromViper(v)
+		httpBuilder := http.NewBuilder().InitFromViper(v)
 
 		metricsFactory := metricstest.NewFactory(time.Microsecond)
-		proxy, err := CreateCollectorProxy(rOpts, tchan, grpcBuilder, zap.NewNop(), metricsFactory)
+		proxy, err := CreateCollectorProxy(rOpts, tchan, grpcBuilder, httpBuilder, zap.NewNop(), metricsFactory)
 		if test.err != "" {
 			assert.EqualError(t, err, test.err)
 			assert.Nil(t, proxy)
@@ -262,8 +264,9 @@ func TestCreateCollectorProxy_UnknownReporter(t *testing.T) {
 	rOpts := new(reporter.Options)
 	tchan := tchannel.NewBuilder()
 	grpcBuilder := grpc.NewConnBuilder()
+	httpBuilder := http.NewBuilder()
 
-	proxy, err := CreateCollectorProxy(rOpts, tchan, grpcBuilder, zap.NewNop(), metrics.NullFactory)
+	proxy, err := CreateCollectorProxy(rOpts, tchan, grpcBuilder, httpBuilder, zap.NewNop(), metrics.NullFactory)
 	assert.Nil(t, proxy)
 	assert.EqualError(t, err, "unknown reporter type ")
 }

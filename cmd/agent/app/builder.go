@@ -29,6 +29,7 @@ import (
 	"github.com/jaegertracing/jaeger/cmd/agent/app/processors"
 	"github.com/jaegertracing/jaeger/cmd/agent/app/reporter"
 	"github.com/jaegertracing/jaeger/cmd/agent/app/reporter/grpc"
+	httpClient "github.com/jaegertracing/jaeger/cmd/agent/app/reporter/http"
 	"github.com/jaegertracing/jaeger/cmd/agent/app/reporter/tchannel"
 	"github.com/jaegertracing/jaeger/cmd/agent/app/servers"
 	"github.com/jaegertracing/jaeger/cmd/agent/app/servers/thriftudp"
@@ -217,6 +218,7 @@ func CreateCollectorProxy(
 	opts *reporter.Options,
 	tchanBuilder *tchannel.Builder,
 	grpcBuilder *grpc.ConnBuilder,
+	httpBuilder *httpClient.Builder,
 	logger *zap.Logger,
 	mFactory metrics.Factory,
 ) (CollectorProxy, error) {
@@ -233,6 +235,8 @@ func CreateCollectorProxy(
 		return grpc.NewCollectorProxy(grpcBuilder, opts.AgentTags, mFactory, logger)
 	case reporter.TCHANNEL:
 		return tchannel.NewCollectorProxy(tchanBuilder, mFactory, logger)
+	case reporter.HTTP:
+		return httpClient.NewCollectorProxy(httpBuilder, mFactory, logger)
 	default:
 		return nil, fmt.Errorf("unknown reporter type %s", string(opts.ReporterType))
 	}

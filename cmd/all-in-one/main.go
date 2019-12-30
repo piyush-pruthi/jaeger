@@ -40,6 +40,7 @@ import (
 	agentApp "github.com/jaegertracing/jaeger/cmd/agent/app"
 	agentRep "github.com/jaegertracing/jaeger/cmd/agent/app/reporter"
 	agentGrpcRep "github.com/jaegertracing/jaeger/cmd/agent/app/reporter/grpc"
+	agentHttpRep "github.com/jaegertracing/jaeger/cmd/agent/app/reporter/http"
 	agentTchanRep "github.com/jaegertracing/jaeger/cmd/agent/app/reporter/tchannel"
 	"github.com/jaegertracing/jaeger/cmd/all-in-one/setupcontext"
 	collectorApp "github.com/jaegertracing/jaeger/cmd/collector/app"
@@ -127,11 +128,12 @@ by default uses only in-memory database.`,
 			repOpts := new(agentRep.Options).InitFromViper(v, logger)
 			tchanBuilder := agentTchanRep.NewBuilder().InitFromViper(v, logger)
 			grpcBuilder := agentGrpcRep.NewConnBuilder().InitFromViper(v)
+			httpBuilder := agentHttpRep.NewBuilder().InitFromViper(v)
 			cOpts := new(collector.CollectorOptions).InitFromViper(v)
 			qOpts := new(queryApp.QueryOptions).InitFromViper(v)
 
 			collectorSrv := startCollector(cOpts, spanWriter, logger, metricsFactory, strategyStore, svc.HC())
-			startAgent(aOpts, repOpts, tchanBuilder, grpcBuilder, cOpts, logger, metricsFactory)
+			startAgent(aOpts, repOpts, tchanBuilder, grpcBuilder, httpBuilder, cOpts, logger, metricsFactory)
 			querySrv := startQuery(
 				svc, qOpts, archiveOptions(storageFactory, logger),
 				spanReader, dependencyReader,
@@ -166,6 +168,7 @@ by default uses only in-memory database.`,
 		agentRep.AddFlags,
 		agentTchanRep.AddFlags,
 		agentGrpcRep.AddFlags,
+		agentHttpRep.AddFlags,
 		collector.AddFlags,
 		queryApp.AddFlags,
 		strategyStoreFactory.AddFlags,
@@ -182,6 +185,7 @@ func startAgent(
 	repOpts *agentRep.Options,
 	tchanBuilder *agentTchanRep.Builder,
 	grpcBuilder *agentGrpcRep.ConnBuilder,
+	httpBuilder *agentHttpRep.Builder,
 	cOpts *collector.CollectorOptions,
 	logger *zap.Logger,
 	baseFactory metrics.Factory,
@@ -189,7 +193,7 @@ func startAgent(
 	metricsFactory := baseFactory.Namespace(metrics.NSOptions{Name: "agent", Tags: nil})
 
 	grpcBuilder.CollectorHostPorts = append(grpcBuilder.CollectorHostPorts, fmt.Sprintf("127.0.0.1:%d", cOpts.CollectorGRPCPort))
-	cp, err := agentApp.CreateCollectorProxy(repOpts, tchanBuilder, grpcBuilder, logger, metricsFactory)
+	cp, err := agentApp.CreateCollectorProxy(repOpts, tchanBuilder, grpcBuilder, httpBuilder, logger, metricsFactory)
 	if err != nil {
 		logger.Fatal("Could not create collector proxy", zap.Error(err))
 	}
