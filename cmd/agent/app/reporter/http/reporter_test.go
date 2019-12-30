@@ -20,10 +20,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/apache/thrift/lib/go/thrift"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 
-	"github.com/apache/thrift/lib/go/thrift"
 	"github.com/jaegertracing/jaeger/thrift-gen/jaeger"
 )
 

@@ -23,9 +23,10 @@ import (
 	"time"
 
 	"github.com/apache/thrift/lib/go/thrift"
+	"go.uber.org/zap"
+
 	"github.com/jaegertracing/jaeger/thrift-gen/jaeger"
 	"github.com/jaegertracing/jaeger/thrift-gen/zipkincore"
-	"go.uber.org/zap"
 )
 
 // Reporter forwards received spans to central collector tier over Http
