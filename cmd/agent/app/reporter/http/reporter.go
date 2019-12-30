@@ -65,9 +65,8 @@ func (r *Reporter) EmitBatch(batch *jaeger.Batch) error {
 	}
 
 	req.Header.Set("Content-Type", "application/x-thrift")
-	client := &http.Client{}
 
-	resp, err := client.Do(req)
+	resp, err := r.client.Do(req)
 
 	if err != nil {
 		r.logger.Error("Error in sending spans over http", zap.Error(err))
